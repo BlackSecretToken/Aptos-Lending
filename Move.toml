@@ -6,4 +6,4 @@ git = 'https://github.com/aptos-labs/aptos-core.git'
 rev = 'main'
 subdir = 'aptos-move/framework/aptos-framework'
 [addresses]
-quantum = '0b5a733cc46e894f668e6e84f4b818674f334e8b92010574685e10576fac0e02'
+Quantum = '0b5a733cc46e894f668e6e84f4b818674f334e8b92010574685e10576fac0e02'

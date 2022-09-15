@@ -4,6 +4,8 @@ module AdminSignerCapability {
     use std::error;
     use std::signer;
     use aptos_framework::account;
+
+    friend Quantum::Oracle;
     
     const ENOT_ADMIN_ACCOUNT: u64 = 11;
 

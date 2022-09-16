@@ -6,7 +6,7 @@ module PoolOracle {
     use aptos_framework::timestamp;
     use aptos_framework::account;
 
-    use Quantum::SafeMath;
+    use Quantum::SafeMathU128;
     use Quantum::AptPoolOracle;
 
     struct UpdateEvent has drop, store {}
@@ -73,7 +73,7 @@ module PoolOracle {
     public fun latest_exchange_rate<PoolType: store>(): (u128, u128) acquires Price {
         let (e, s) = latest_price<PoolType>();
         if (e > 0) {
-            (SafeMath::safe_mul_div(s, PRECISION, e), PRECISION)
+            (SafeMathU128::safe_mul_div(s, PRECISION, e), PRECISION)
         } else {
             (0, 0)
         }
@@ -91,7 +91,7 @@ module PoolOracle {
     // how much collateral to buy 1 QUSD
     fun do_update<PoolType: store>(exchange_rate: u128, scaling_factor: u128): (u128, u128) acquires Price {
         let price = borrow_global_mut<Price<PoolType>>(t_address<PoolType>());
-        let new_exchange_rate = SafeMath::safe_mul_div(scaling_factor, PRECISION, exchange_rate);
+        let new_exchange_rate = SafeMathU128::safe_mul_div(scaling_factor, PRECISION, exchange_rate);
         price.exchange_rate = new_exchange_rate;
         price.scaling_factor = PRECISION;
         price.last_updated = timestamp::now_seconds();

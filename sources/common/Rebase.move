@@ -1,7 +1,7 @@
 /* address Quantum {
 module Rebase {
     use std::signer;
-    use Quantum::SafeMath;
+    use Quantum::SafeMathU128;
 
     struct ModifyCapability<phantom T> has key, store { owner: address }
 
@@ -35,8 +35,8 @@ module Rebase {
         if (total.elastic == 0) {
             elastic
         } else {
-            let base = SafeMath::safe_mul_div(elastic, total.base, total.elastic);
-            if (roundUp && SafeMath::safe_mul_div(base, total.elastic, total.base) < elastic) {
+            let base = SafeMathU128::safe_mul_div(elastic, total.base, total.elastic);
+            if (roundUp && SafeMathU128::safe_mul_div(base, total.elastic, total.base) < elastic) {
                 base = base + 1;
             };
             base
@@ -54,8 +54,8 @@ module Rebase {
         if (total.base == 0) {
             base
         } else {
-            let elastic = SafeMath::safe_mul_div(base, total.elastic, total.base);
-            if (roundUp && SafeMath::safe_mul_div(elastic, total.base, total.elastic) < base) {
+            let elastic = SafeMathU128::safe_mul_div(base, total.elastic, total.base);
+            if (roundUp && SafeMathU128::safe_mul_div(elastic, total.base, total.elastic) < base) {
                 elastic = elastic + 1;
             };
             elastic

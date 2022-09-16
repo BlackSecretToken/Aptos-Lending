@@ -35,17 +35,15 @@ module MathU64 {
 
     /// @dev Returns a to the power of b.
     public fun exp(a: u64, b: u64): u64 {
-        let result = 1;
-        let z = b;
-        let u = a;
-        while (z > 0) {
-            if (z % 2 == 1) {
-                result = (u * result);
-            };
-            u = u * u;
-            z = z / 2;
+        let c = 1;
+
+        while (b > 0) {
+            if (b & 1 > 0) c = c * a;
+            b = b >> 1;
+            a = a * a;
         };
-        result
+
+        c
     }
 
     /// @dev Returns the square root of a number. If the number is not a perfect square, the value is rounded down.

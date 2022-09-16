@@ -12,7 +12,7 @@ module LendingPool {
     use aptos_framework::type_info;
 
     use Quantum::Rebase;
-    use Quantum::SafeMath;
+    use Quantum::SafeMathU128;
     use Quantum::PoolOracle;
 
     // config
@@ -372,8 +372,8 @@ module LendingPool {
         };
 
         // Accrue interest
-        let interest = SafeMath::safe_mul_div(info.interest_per_second, INTEREST_PRECISION, INTEREST_CONVERSION);
-        let amount = SafeMath::safe_mul_div(elastic, interest * elapsedTime, INTEREST_PRECISION);
+        let interest = SafeMathU128::safe_mul_div(info.interest_per_second, INTEREST_PRECISION, INTEREST_CONVERSION);
+        let amount = SafeMathU128::safe_mul_div(elastic, interest * elapsedTime, INTEREST_PRECISION);
 
         // Affect elastic
         let cap = borrow_global<SharedRebaseModifyCapability<TotalBorrow<PoolType, BorrowTokenType>>>(pool_owner);
@@ -405,7 +405,7 @@ module LendingPool {
         // user_total_collateral = user_info.collateral * (EXCHANGE_RATE_PRECISION * info.liquidation_threshold / LIQUIDATION_THRESHOLD_PRECISION)
         // user_total_borrow = Rebase::toElastic<TotalBorrow<PoolType, BorrowTokenType>>(pool_owner, user_info.borrow, true) * exchange_rate
         // user_total_collateral >= user_total_borrow
-        SafeMath::safe_more_than_or_equal(
+        SafeMathU128::safe_more_than_or_equal(
             user_info.collateral,
             EXCHANGE_RATE_PRECISION * info.liquidation_threshold / LIQUIDATION_THRESHOLD_PRECISION,
             Rebase::toElastic<TotalBorrow<PoolType, BorrowTokenType>>(pool_owner, user_info.borrow, true),
@@ -534,12 +534,12 @@ module LendingPool {
         // borrow fee
         let info = borrow_global_mut<PoolInfo<PoolType>>(pool_owner);
         assert!(!info.deprecated, ERR_ALREADY_DEPRECATED);
-        let fee_amount = SafeMath::safe_mul_div(amount, info.borrow_opening_fee, BORROW_OPENING_FEE_PRECISION);
+        let fee_amount = SafeMathU128::safe_mul_div(amount, info.borrow_opening_fee, BORROW_OPENING_FEE_PRECISION);
 
         // Checks if the user can borrow
         let (exchange_rate, _) = latest_exchange_rate<PoolType>();
         assert!(
-            SafeMath::safe_more_than_or_equal(
+            SafeMathU128::safe_more_than_or_equal(
                 position.collateral,
                 EXCHANGE_RATE_PRECISION * info.collaterization_rate / COLLATERIZATION_RATE_PRECISION,
                 toAmount<PoolType, BorrowTokenType>(position.borrow, true) + amount + fee_amount,
@@ -662,7 +662,7 @@ module LendingPool {
 
                 // get collateral
                 //amount.mul(LIQUIDATION_MULTIPLIER).mul(_exchangeRate) / (LIQUIDATION_MULTIPLIER_PRECISION*EXCHANGE_RATE_PRECISION)
-                let collateral = SafeMath::safe_mul_div(
+                let collateral = SafeMathU128::safe_mul_div(
                     amount,
                     liquidation_multiplier * exchange_rate,
                     LIQUIDATION_MULTIPLIER_PRECISION * EXCHANGE_RATE_PRECISION,
@@ -695,8 +695,8 @@ module LendingPool {
 
         // Apply a percentual fee share to sShare holders ( must after `Affect total borrow`)
         // (allBorrowAmount.mul(LIQUIDATION_MULTIPLIER) / LIQUIDATION_MULTIPLIER_PRECISION).sub(allBorrowAmount).mul(DISTRIBUTION_PART) / DISTRIBUTION_PRECISION;
-        let distribution_amount = SafeMath::safe_mul_div(
-            SafeMath::safe_mul_div(
+        let distribution_amount = SafeMathU128::safe_mul_div(
+            SafeMathU128::safe_mul_div(
                 allBorrowAmount,
                 liquidation_multiplier,
                 LIQUIDATION_MULTIPLIER_PRECISION,

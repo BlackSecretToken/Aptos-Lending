@@ -1,5 +1,6 @@
 address Quantum {
-module SafeMath {
+
+module SafeMathU128 {
     use std::error;
     use Quantum::MathU128;
 

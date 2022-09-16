@@ -11,15 +11,15 @@ module APTUSDOracle {
         PriceOracle::register_oracle<APTUSD>(sender, 6);
     }
 
-    public fun read(ds_addr: address) : u128{
+    public fun read(ds_addr: address) : u64{
         PriceOracle::read<APTUSD>(ds_addr)
     }
 
-    public fun read_record(ds_addr: address): DataRecord<u128>{
+    public fun read_record(ds_addr: address): DataRecord<u64>{
         PriceOracle::read_record<APTUSD>(ds_addr)
     }
 
-    public fun read_records(ds_addrs: &vector<address>): vector<DataRecord<u128>>{
+    public fun read_records(ds_addrs: &vector<address>): vector<DataRecord<u64>>{
         PriceOracle::read_records<APTUSD>(ds_addrs)
     }
 }

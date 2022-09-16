@@ -1,4 +1,4 @@
-/* address Quantum {
+address Quantum {
 
 module LendingPool {
     
@@ -12,38 +12,38 @@ module LendingPool {
     use aptos_framework::type_info;
 
     use Quantum::Rebase;
-    use Quantum::SafeMathU128;
+    use Quantum::SafeMathU64;
     use Quantum::PoolOracle;
 
     // config
     // liquidate * 10% -> fees_earned
-    const DISTRIBUTION_PART: u128 = 10;
-    const DISTRIBUTION_PRECISION: u128 = 100;
+    const DISTRIBUTION_PART: u64 = 10;
+    const DISTRIBUTION_PRECISION: u64 = 100;
     // borrow_opening_fee = 1000  => 1%
-    const BORROW_OPENING_FEE_PRECISION: u128 = 100 * 1000;
+    const BORROW_OPENING_FEE_PRECISION: u64 = 100 * 1000;
     // liquidation_multiplier = 105000 => 105%
-    const LIQUIDATION_MULTIPLIER_PRECISION: u128 = 100 * 1000;
+    const LIQUIDATION_MULTIPLIER_PRECISION: u64 = 100 * 1000;
     // ltv collaterization_rate = 90000 => 90%
-    const COLLATERIZATION_RATE_PRECISION: u128 = 100 * 1000;
+    const COLLATERIZATION_RATE_PRECISION: u64 = 100 * 1000;
     // liquidation_threshold = 95000 => 95% (threshold > ltv)
-    const LIQUIDATION_THRESHOLD_PRECISION: u128 = 100 * 1000;
+    const LIQUIDATION_THRESHOLD_PRECISION: u64 = 100 * 1000;
     // 1e18
-    const INTEREST_PRECISION: u128 = 1000000000000000000;
+    const INTEREST_PRECISION: u64 = 1000000000000000000;
     // 2.5 * (1e18 /365.25 * 3600 * 24 /100 ) => 2.5%
     // interest_per_second = 2500 => 2.5%
-    const INTEREST_CONVERSION: u128 = 365250 * 3600 * 24 * 100;
+    const INTEREST_CONVERSION: u64 = 365250 * 3600 * 24 * 100;
     // EXCHANGE_RATE_PRECISION == PoolOracle.PRECISION
-    const EXCHANGE_RATE_PRECISION: u128 = 1000000 * 1000000;
+    const EXCHANGE_RATE_PRECISION: u64 = 1000000 * 1000000;
 
-    struct AccrueEvent has drop, store { amount: u128 }
+    struct AccrueEvent has drop, store { amount: u64 }
     struct FeeToEvent has drop, store { fee_to: address }
 
     struct PoolInfo<phantom PoolType> has key, store {
-        collaterization_rate: u128,
-        liquidation_threshold: u128,
-        liquidation_multiplier: u128,
-        borrow_opening_fee: u128,
-        interest_per_second: u128,
+        collaterization_rate: u64,
+        liquidation_threshold: u64,
+        liquidation_multiplier: u64,
+        borrow_opening_fee: u64,
+        interest_per_second: u64,
         fee_to: address,
         fees_earned: u64,
         last_accrued: u64,
@@ -53,13 +53,13 @@ module LendingPool {
     }
 
     struct PoolMinBorrow<phantom PoolType> has key, store {
-        min_borrow: u128,
+        min_borrow: u64,
     }
 
     // Collateral
-    struct RemoveCollateralEvent has drop, store { from: address, to: address, amount: u128 }
-    struct AddCollateralEvent has drop, store { account: address, amount: u128 }
-    struct LiquidateCollateralEvent has drop, store { account: address, amount: u128 }
+    struct RemoveCollateralEvent has drop, store { from: address, to: address, amount: u64 }
+    struct AddCollateralEvent has drop, store { account: address, amount: u64 }
+    struct LiquidateCollateralEvent has drop, store { account: address, amount: u64 }
     struct TotalCollateral<phantom PoolType, phantom CollateralTokenType> has key, store {
         balance: Coin<CollateralTokenType>,    // user deposited
         add_events: event::EventHandle<AddCollateralEvent>,
@@ -68,8 +68,8 @@ module LendingPool {
     }
 
     // borrow
-    struct BorrowEvent has drop, store { from: address, to: address, amount: u128, part: u128 }
-    struct RepayEvent has drop, store { from: address, to: address, amount: u128, part: u128 }
+    struct BorrowEvent has drop, store { from: address, to: address, amount: u64, part: u64 }
+    struct RepayEvent has drop, store { from: address, to: address, amount: u64, part: u64 }
     struct LiquidateEvent has drop, store { account: address, amount: u64 }
     struct DepositEvent has drop, store { account: address, amount: u64 }
     struct WithdrawEvent has drop, store { account: address, amount: u64 }
@@ -83,7 +83,7 @@ module LendingPool {
     }
 
     // user position
-    struct Position<phantom PoolType> has key, store { collateral: u128, borrow: u128 }
+    struct Position<phantom PoolType> has key, store { collateral: u64, borrow: u64 }
 
     // error code
     const ERR_ALREADY_DEPRECATED: u64 = 100;
@@ -135,11 +135,11 @@ module LendingPool {
     // only PoolType issuer can initialize
     public fun initialize<PoolType: store, CollateralTokenType: store, BorrowTokenType: store>(
         account: &signer,
-        collaterization_rate: u128,
-        liquidation_threshold: u128,
-        liquidation_multiplier: u128,
-        borrow_opening_fee: u128,
-        interest_per_second: u128,
+        collaterization_rate: u64,
+        liquidation_threshold: u64,
+        liquidation_multiplier: u64,
+        borrow_opening_fee: u64,
+        interest_per_second: u64,
         amount: u64,
         oracle_name: vector<u8>,
     ) acquires TotalBorrow {
@@ -203,20 +203,20 @@ module LendingPool {
         PoolOracle::register<PoolType>(account, oracle_name);
     }
 
-    public fun init_min_borrow<PoolType: store>(account: &signer, value: u128) {
+    public fun init_min_borrow<PoolType: store>(account: &signer, value: u64) {
         assert_owner<PoolType>(account);
         move_to(account, PoolMinBorrow<PoolType> { min_borrow: value });
     }
 
-    public fun set_min_borrow<PoolType: store>(account: &signer, value: u128) acquires PoolMinBorrow {
+    public fun set_min_borrow<PoolType: store>(account: &signer, value: u64) acquires PoolMinBorrow {
         let settings = borrow_global_mut<PoolMinBorrow<PoolType>>(signer::address_of(account));
         settings.min_borrow = value;
     }
 
-    public fun get_min_borrow<PoolType: store>(): u128 acquires PoolMinBorrow {
+    public fun get_min_borrow<PoolType: store>(): u64 acquires PoolMinBorrow {
         let addr = t_address<PoolType>();
         if (!exists<PoolMinBorrow<PoolType>>(addr)) {
-            0u128
+            0
         } else {
             borrow_global<PoolMinBorrow<PoolType>>(addr).min_borrow
         }
@@ -268,33 +268,33 @@ module LendingPool {
 
     // =================== oracle ===================
     // Gets the exchange rate. I.e how much collateral to buy 1 asset.
-    public fun update_exchange_rate<PoolType: store>(): u128 {
+    public fun update_exchange_rate<PoolType: store>(): u64 {
         let (exchange_rate, _) = PoolOracle::update<PoolType>();
         exchange_rate
     }
 
     // =================== tools fun ===================
     // get user's position (collateral, borrowed part)
-    public fun position<PoolType: store>(addr: address): (u128, u128) acquires Position {
+    public fun position<PoolType: store>(addr: address): (u64, u64) acquires Position {
         if (!exists<Position<PoolType>>(addr)) {
-            (0u128, 0u128)
+            (0, 0)
         } else {
             let user_info = borrow_global<Position<PoolType>>(addr);
             (user_info.collateral, user_info.borrow)
         }
     }
 
-    public fun get_exchange_rate<PoolType: store>(): (u128, u128) {
+    public fun get_exchange_rate<PoolType: store>(): (u64, u64) {
         let (exchange_rate, _, _) = PoolOracle::get<PoolType>();
         (exchange_rate, EXCHANGE_RATE_PRECISION)
     }
 
-    public fun latest_exchange_rate<PoolType: store>(): (u128, u128) {
+    public fun latest_exchange_rate<PoolType: store>(): (u64, u64) {
         PoolOracle::latest_exchange_rate<PoolType>()
     }
 
     // return base config (Maximum collateral ratio, Liquidation threshold, Liquidation fee, Borrow fee, Interest)
-    public fun pool_info<PoolType: store>(): (u128, u128, u128, u128, u128) acquires PoolInfo {
+    public fun pool_info<PoolType: store>(): (u64, u64, u64, u64, u64) acquires PoolInfo {
         let info = borrow_global<PoolInfo<PoolType>>(t_address<PoolType>());
         (
             info.collaterization_rate,
@@ -317,7 +317,7 @@ module LendingPool {
     }
 
     // return borrow info (total borrowed part, total borrowed amount, left to borrow)
-    public fun borrow_info<PoolType: store, BorrowTokenType: store>(): (u128, u128, u128) acquires TotalBorrow {
+    public fun borrow_info<PoolType: store, BorrowTokenType: store>(): (u64, u64, u64) acquires TotalBorrow {
         let pool_owner = assert_total_borrow<PoolType, BorrowTokenType>();
         let total_borrow = borrow_global<TotalBorrow<PoolType, BorrowTokenType>>(pool_owner);
         let (elastic, base) = Rebase::get<TotalBorrow<PoolType, BorrowTokenType>>(pool_owner);
@@ -333,7 +333,7 @@ module LendingPool {
     }
 
     // return fee config (Maximum collateral ratio, Liquidation fee, Borrow fee, Interest)
-    public fun fee_info<PoolType: store>(): (address, u128, u64) acquires PoolInfo {
+    public fun fee_info<PoolType: store>(): (address, u64, u64) acquires PoolInfo {
         let info = borrow_global<PoolInfo<PoolType>>(t_address<PoolType>());
         (
             info.fee_to,
@@ -343,12 +343,12 @@ module LendingPool {
     }
 
     // part <=> amount
-    public fun toAmount<PoolType: store, BorrowTokenType: store>(part: u128, roundUp: bool): u128 {
+    public fun toAmount<PoolType: store, BorrowTokenType: store>(part: u64, roundUp: bool): u64 {
         let pool_owner = assert_total_borrow<PoolType, BorrowTokenType>();
         Rebase::toElastic<TotalBorrow<PoolType, BorrowTokenType>>(pool_owner, part, roundUp)
     }
 
-    public fun toPart<PoolType: store, BorrowTokenType: store>(amount: u128, roundUp: bool): u128 {
+    public fun toPart<PoolType: store, BorrowTokenType: store>(amount: u64, roundUp: bool): u64 {
         let pool_owner = assert_total_borrow<PoolType, BorrowTokenType>();
         Rebase::toBase<TotalBorrow<PoolType, BorrowTokenType>>(pool_owner, amount, roundUp)
     }
@@ -360,7 +360,7 @@ module LendingPool {
         assert!(exists<PoolInfo<PoolType>>(pool_owner), ERR_NOT_EXIST);
 
         let info = borrow_global_mut<PoolInfo<PoolType>>(pool_owner);
-        let elapsedTime = ((timestamp::now_seconds() - info.last_accrued) as u128);
+        let elapsedTime = (timestamp::now_seconds() - info.last_accrued);
         if (elapsedTime == 0) {
             return
         };
@@ -372,8 +372,8 @@ module LendingPool {
         };
 
         // Accrue interest
-        let interest = SafeMathU128::safe_mul_div(info.interest_per_second, INTEREST_PRECISION, INTEREST_CONVERSION);
-        let amount = SafeMathU128::safe_mul_div(elastic, interest * elapsedTime, INTEREST_PRECISION);
+        let interest = SafeMathU64::safe_mul_div(info.interest_per_second, INTEREST_PRECISION, INTEREST_CONVERSION);
+        let amount = SafeMathU64::safe_mul_div(elastic, interest * elapsedTime, INTEREST_PRECISION);
 
         // Affect elastic
         let cap = borrow_global<SharedRebaseModifyCapability<TotalBorrow<PoolType, BorrowTokenType>>>(pool_owner);
@@ -389,7 +389,7 @@ module LendingPool {
     // exchange_rate The exchange rate. Used to cache the `exchange_rate` between calls.
     public fun is_solvent<PoolType: store, BorrowTokenType: store>(
         addr: address,
-        exchange_rate: u128,
+        exchange_rate: u64,
     ): bool acquires PoolInfo, Position {
         // accrue must have already been called!
         // user have no Collateral and borrow
@@ -405,7 +405,7 @@ module LendingPool {
         // user_total_collateral = user_info.collateral * (EXCHANGE_RATE_PRECISION * info.liquidation_threshold / LIQUIDATION_THRESHOLD_PRECISION)
         // user_total_borrow = Rebase::toElastic<TotalBorrow<PoolType, BorrowTokenType>>(pool_owner, user_info.borrow, true) * exchange_rate
         // user_total_collateral >= user_total_borrow
-        SafeMathU128::safe_more_than_or_equal(
+        SafeMathU64::safe_more_than_or_equal(
             user_info.collateral,
             EXCHANGE_RATE_PRECISION * info.liquidation_threshold / LIQUIDATION_THRESHOLD_PRECISION,
             Rebase::toElastic<TotalBorrow<PoolType, BorrowTokenType>>(pool_owner, user_info.borrow, true),
@@ -424,7 +424,7 @@ module LendingPool {
     // Adds `collateral` to the account
     public fun add_collateral<PoolType: store, CollateralTokenType: store>(
         account: &signer,
-        amount: u128,
+        amount: u64,
     ) acquires TotalCollateral, Position, PoolInfo {
         assert!(amount > 0, ERR_ZERO_AMOUNT);
         let account_addr = signer::address_of(account);
@@ -435,7 +435,7 @@ module LendingPool {
 
         // Affect TotalCollateral
         let total_collateral = borrow_global_mut<TotalCollateral<PoolType, CollateralTokenType>>(pool_owner);
-        Token::deposit(&mut total_collateral.balance, Account::withdraw<CollateralTokenType>(account, amount));
+        coin::merge(&mut total_collateral.balance, coin::withdraw<CollateralTokenType>(account, amount));
         event::emit_event(
             &mut total_collateral.add_events,
             AddCollateralEvent {
@@ -458,7 +458,7 @@ module LendingPool {
     public fun remove_collateral<PoolType: store, CollateralTokenType: store, BorrowTokenType: store>(
         account: &signer,
         receiver: address,
-        amount: u128,
+        amount: u64,
     ) acquires SharedRebaseModifyCapability, PoolInfo, TotalCollateral, Position {
         let account_addr = signer::address_of(account);
         // accrue must be called because we check solvency
@@ -470,13 +470,13 @@ module LendingPool {
     fun do_remove_collateral<PoolType: store, CollateralTokenType: store>(
         from: address,
         to: address,
-        amount: u128,
+        amount: u64,
     ) acquires TotalCollateral, Position {
         assert!(amount > 0, ERR_ZERO_AMOUNT);
         assert!(exists<Position<PoolType>>(from), ERR_NOT_EXIST);
         let user_info = borrow_global_mut<Position<PoolType>>(from);
         assert!(amount <= user_info.collateral, ERR_TOO_BIG_AMOUNT);
-        assert!(Account::is_accepts_token<CollateralTokenType>(to), ERR_ACCEPT_TOKEN);
+        assert!(coin::is_account_registered<CollateralTokenType>(to), ERR_ACCEPT_TOKEN);
 
         let pool_owner = assert_total_collateral<PoolType, CollateralTokenType>();
         let total_collateral = borrow_global_mut<TotalCollateral<PoolType, CollateralTokenType>>(pool_owner);
@@ -488,7 +488,7 @@ module LendingPool {
         };
 
         // transfer collateral
-        Account::deposit(to, Token::withdraw(&mut total_collateral.balance, amount));
+        coin::deposit(to, coin::extract(&mut total_collateral.balance, amount));
         event::emit_event(
             &mut total_collateral.remove_events,
             RemoveCollateralEvent { from: from, to: to, amount: amount },
@@ -500,8 +500,8 @@ module LendingPool {
     public fun borrow<PoolType: store, BorrowTokenType: store>(
         account: &signer,
         receiver: address,
-        amount: u128,
-    ): u128 acquires SharedRebaseModifyCapability, PoolInfo, TotalBorrow, Position, PoolMinBorrow {
+        amount: u64,
+    ): u64 acquires SharedRebaseModifyCapability, PoolInfo, TotalBorrow, Position, PoolMinBorrow {
         // accrue must be called because we check solvency
         accrue<PoolType, BorrowTokenType>();
         do_borrow<PoolType, BorrowTokenType>(account, receiver, amount)
@@ -510,16 +510,16 @@ module LendingPool {
     fun do_borrow<PoolType: store, BorrowTokenType: store>(
         account: &signer,
         to: address,
-        amount: u128,
-    ): u128 acquires SharedRebaseModifyCapability, TotalBorrow, PoolInfo, Position, PoolMinBorrow {
+        amount: u64,
+    ): u64 acquires SharedRebaseModifyCapability, TotalBorrow, PoolInfo, Position, PoolMinBorrow {
         let from = signer::address_of(account);
         assert!(amount > 0, ERR_ZERO_AMOUNT);
         assert!(amount >= get_min_borrow<PoolType>(), ERR_BORROW_TOO_LITTLE_AMOUNT);
         // add_collateral will move_to<Position>
         assert!(exists<Position<PoolType>>(from), ERR_NOT_EXIST);
-        if (!Account::is_accepts_token<BorrowTokenType>(to)) {
+        if (!coin::is_account_registered<BorrowTokenType>(to)) {
             if (from == to) {
-                Account::do_accept_token<BorrowTokenType>(account);
+                coin::register<BorrowTokenType>(account);
             } else {
                 assert!(false, ERR_ACCEPT_TOKEN);
             };
@@ -527,19 +527,19 @@ module LendingPool {
 
         let pool_owner = assert_total_borrow<PoolType, BorrowTokenType>();
         let total_borrow = borrow_global_mut<TotalBorrow<PoolType, BorrowTokenType>>(pool_owner);
-        assert!(amount <= Token::value(&total_borrow.balance), ERR_TOO_BIG_AMOUNT);
+        assert!(amount <= coin::value(&total_borrow.balance), ERR_TOO_BIG_AMOUNT);
 
         let position = borrow_global_mut<Position<PoolType>>(from);
 
         // borrow fee
         let info = borrow_global_mut<PoolInfo<PoolType>>(pool_owner);
         assert!(!info.deprecated, ERR_ALREADY_DEPRECATED);
-        let fee_amount = SafeMathU128::safe_mul_div(amount, info.borrow_opening_fee, BORROW_OPENING_FEE_PRECISION);
+        let fee_amount = SafeMathU64::safe_mul_div(amount, info.borrow_opening_fee, BORROW_OPENING_FEE_PRECISION);
 
         // Checks if the user can borrow
         let (exchange_rate, _) = latest_exchange_rate<PoolType>();
         assert!(
-            SafeMathU128::safe_more_than_or_equal(
+            SafeMathU64::safe_more_than_or_equal(
                 position.collateral,
                 EXCHANGE_RATE_PRECISION * info.collaterization_rate / COLLATERIZATION_RATE_PRECISION,
                 toAmount<PoolType, BorrowTokenType>(position.borrow, true) + amount + fee_amount,
@@ -560,7 +560,7 @@ module LendingPool {
         position.borrow = position.borrow + part;
 
         // Affect borrow
-        Account::deposit(to, Token::withdraw(&mut total_borrow.balance, amount));
+        coin::deposit(to, coin::extract(&mut total_borrow.balance, amount));
         event::emit_event(
             &mut total_borrow.borrow_events,
             BorrowEvent { from: from, to: to, amount: amount, part: part },
@@ -573,8 +573,8 @@ module LendingPool {
     public fun repay<PoolType: store, BorrowTokenType: store>(
         account: &signer,
         receiver: address,
-        part: u128,
-    ): u128 acquires SharedRebaseModifyCapability, PoolInfo, TotalBorrow, Position {
+        part: u64,
+    ): u64 acquires SharedRebaseModifyCapability, PoolInfo, TotalBorrow, Position {
         // accrue must be called because we check solvency
         accrue<PoolType, BorrowTokenType>();
         do_repay<PoolType, BorrowTokenType>(account, receiver, part)
@@ -583,8 +583,8 @@ module LendingPool {
     fun do_repay<PoolType: store, BorrowTokenType: store>(
         account: &signer,
         to: address,
-        part: u128,
-    ): u128 acquires SharedRebaseModifyCapability, TotalBorrow, Position {
+        part: u64,
+    ): u64 acquires SharedRebaseModifyCapability, TotalBorrow, Position {
         assert!(part > 0, ERR_ZERO_AMOUNT);
         let pool_owner = assert_total_borrow<PoolType, BorrowTokenType>();
         let position = borrow_global_mut<Position<PoolType>>(to);
@@ -599,7 +599,7 @@ module LendingPool {
 
         // Affect borrow token
         let total_borrow = borrow_global_mut<TotalBorrow<PoolType, BorrowTokenType>>(pool_owner);
-        Token::deposit(&mut total_borrow.balance, Account::withdraw<BorrowTokenType>(account, amount));
+        coin::merge(&mut total_borrow.balance, coin::withdraw<BorrowTokenType>(account, amount));
         event::emit_event(
             &mut total_borrow.repay_events,
             RepayEvent { from: signer::address_of(account), to: to, amount: amount, part: part },
@@ -616,16 +616,16 @@ module LendingPool {
     public fun liquidate<PoolType: store, CollateralTokenType: store, BorrowTokenType: store>(
         account: &signer,
         users: &vector<address>,
-        max_parts: &vector<u128>,
+        max_parts: &vector<u64>,
         to: address,
     ) acquires SharedRebaseModifyCapability, PoolInfo, TotalCollateral, TotalBorrow, Position {
         let account_addr = signer::address_of(account);
         let user_len = vector::length<address>(users);
         assert!(user_len > 0, ERR_EMPTY);
-        assert!(user_len == vector::length<u128>(max_parts), ERR_LENGTH_NOT_EQUAL);
-        if (!Account::is_accepts_token<CollateralTokenType>(to)) {
+        assert!(user_len == vector::length<u64>(max_parts), ERR_LENGTH_NOT_EQUAL);
+        if (!coin::is_account_registered<CollateralTokenType>(to)) {
             if (account_addr == to) {
-                Account::do_accept_token<BorrowTokenType>(account);
+                coin::register<BorrowTokenType>(account);
             } else {
                 assert!(false, ERR_ACCEPT_TOKEN);
             };
@@ -643,13 +643,13 @@ module LendingPool {
         let total_borrow = borrow_global_mut<TotalBorrow<PoolType, BorrowTokenType>>(pool_owner);
         let total_collateral = borrow_global_mut<TotalCollateral<PoolType, CollateralTokenType>>(pool_owner);
 
-        let allCollateral: u128 = 0;
+        let allCollateral: u64 = 0;
         let allBorrowAmount: u64 = 0;
-        let allBorrowPart: u128 = 0;
+        let allBorrowPart: u64 = 0;
         let i = 0;
         while (i < user_len) {
             let addr = *vector::borrow<address>(users, i);
-            let max_part = *vector::borrow<u128>(max_parts, i);
+            let max_part = *vector::borrow<u64>(max_parts, i);
             if (!is_solvent<PoolType, BorrowTokenType>(addr, exchange_rate)) {
 
                 // get borrow part
@@ -662,7 +662,7 @@ module LendingPool {
 
                 // get collateral
                 //amount.mul(LIQUIDATION_MULTIPLIER).mul(_exchangeRate) / (LIQUIDATION_MULTIPLIER_PRECISION*EXCHANGE_RATE_PRECISION)
-                let collateral = SafeMathU128::safe_mul_div(
+                let collateral = SafeMathU64::safe_mul_div(
                     amount,
                     liquidation_multiplier * exchange_rate,
                     LIQUIDATION_MULTIPLIER_PRECISION * EXCHANGE_RATE_PRECISION,
@@ -695,8 +695,8 @@ module LendingPool {
 
         // Apply a percentual fee share to sShare holders ( must after `Affect total borrow`)
         // (allBorrowAmount.mul(LIQUIDATION_MULTIPLIER) / LIQUIDATION_MULTIPLIER_PRECISION).sub(allBorrowAmount).mul(DISTRIBUTION_PART) / DISTRIBUTION_PRECISION;
-        let distribution_amount = SafeMathU128::safe_mul_div(
-            SafeMathU128::safe_mul_div(
+        let distribution_amount = SafeMathU64::safe_mul_div(
+            SafeMathU64::safe_mul_div(
                 allBorrowAmount,
                 liquidation_multiplier,
                 LIQUIDATION_MULTIPLIER_PRECISION,
@@ -711,7 +711,7 @@ module LendingPool {
         allBorrowAmount = allBorrowAmount + distribution_amount;
 
         // Affect tansfer collateral
-        account::deposit(to, coin::extract(&mut total_collateral.balance, allCollateral));
+        coin::deposit(to, coin::extract(&mut total_collateral.balance, allCollateral));
 
         // Affect tansfer
         coin::merge(&mut total_borrow.balance, coin::withdraw<BorrowTokenType>(account, allBorrowAmount));
@@ -731,12 +731,12 @@ module LendingPool {
     public fun cook<PoolType: store, CollateralTokenType: store, BorrowTokenType: store>(
         account: &signer,
         actions: &vector<u8>,
-        collateral_amount: u128,
-        remove_collateral_amount: u128,
+        collateral_amount: u64,
+        remove_collateral_amount: u64,
         remove_collateral_to: address,
-        borrow_amount: u128,
+        borrow_amount: u64,
         borrow_to: address,
-        repay_part: u128,
+        repay_part: u64,
         repay_to: address,
     ) acquires SharedRebaseModifyCapability, PoolInfo, TotalCollateral, TotalBorrow, Position, PoolMinBorrow {
         // update exchange and accrue
@@ -798,4 +798,4 @@ module LendingPool {
     } 
 
 }
-} */
+}

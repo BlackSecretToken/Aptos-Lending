@@ -5,6 +5,9 @@
 address Quantum {
 
 module MathU64 {
+
+    use std::vector;
+    
     const ROUNDING_DOWN: u8 = 0; // Toward negative infinity
     const ROUNDING_UP: u8 = 0; // Toward infinity
     const ROUNDING_ZERO: u8 = 0; // Toward zero
@@ -24,6 +27,25 @@ module MathU64 {
     public fun average(a: u64, b: u64): u64 {
         // (a + b) / 2 can overflow.
         (a & b) + (a ^ b) / 2
+    }
+
+    /// calculate sum of nums
+    public fun sum(nums: &vector<u64>): u64 {
+        let len = vector::length(nums);
+        let i = 0;
+        let sum = 0;
+        while (i < len){
+            sum = sum + *vector::borrow(nums, i);
+            i = i + 1;
+        };
+        sum
+    }
+
+    /// calculate average of nums
+    public fun avg(nums: &vector<u64>): u64{
+        let len = vector::length(nums);
+        let sum = sum(nums);
+        sum/len
     }
 
     /// @dev Returns the ceiling of the division of two numbers.

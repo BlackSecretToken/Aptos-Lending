@@ -8,7 +8,7 @@ module PriceOracleAggregator{
 
     use Quantum::Oracle;
     use Quantum::PriceOracle;
-    use Quantum::MathU128;
+    use Quantum::MathU64;
    
     
 
@@ -17,7 +17,7 @@ module PriceOracleAggregator{
 
     /// Get latest price from datasources and calculate avg.
     /// `addrs`: the datasource's addr, `updated_in`: the datasource should updated in x millseoconds.
-    public fun latest_price_average_aggregator<OracleT: copy+store+drop>(addrs: &vector<address>, updated_in: u64): u128 {
+    public fun latest_price_average_aggregator<OracleT: copy+store+drop>(addrs: &vector<address>, updated_in: u64): u64 {
         let len = vector::length(addrs);
         let price_records = PriceOracle::read_records<OracleT>(addrs);
         let prices = vector::empty();
@@ -33,7 +33,7 @@ module PriceOracleAggregator{
         };
         // if all price data not match the update_in filter, abort.
         assert!(!vector::is_empty(&prices), error::invalid_state(ERR_NO_PRICE_DATA_AVAILABLE));
-        MathU128::avg(&prices)
+        MathU64::avg(&prices)
     }
 }
 }

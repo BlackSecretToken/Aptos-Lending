@@ -63,7 +63,7 @@ module QUSD {
         });
     }
 
-    public entry fun initialized(account: &signer) {
+    public entry fun initialize(account: &signer) {
         init_coin<QUSD>(account, BASE_COIN_NAME, BASE_COIN_SYMBOL,
             BASE_COIN_DECIMALS, true);
         coin::register<QUSD>(account);

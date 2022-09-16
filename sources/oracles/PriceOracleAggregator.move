@@ -8,7 +8,7 @@ module PriceOracleAggregator{
 
     use Quantum::Oracle;
     use Quantum::PriceOracle;
-    use Quantum::Math;
+    use Quantum::MathU128;
    
     
 
@@ -33,7 +33,7 @@ module PriceOracleAggregator{
         };
         // if all price data not match the update_in filter, abort.
         assert!(!vector::is_empty(&prices), error::invalid_state(ERR_NO_PRICE_DATA_AVAILABLE));
-        Math::avg(&prices)
+        MathU128::avg(&prices)
     }
 }
 }

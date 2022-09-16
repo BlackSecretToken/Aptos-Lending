@@ -1,7 +1,7 @@
 address Quantum {
 
 module PriceOracle {
-    use Quantum::Math;
+    use Quantum::MathU128;
     use Quantum::Oracle::{Self, DataRecord, UpdateCapability};
 
     struct PriceOracleInfo has copy,store,drop{
@@ -9,7 +9,7 @@ module PriceOracle {
     }
 
     public fun register_oracle<OracleT: copy+store+drop>(sender: &signer, precision: u8){
-        let scaling_factor = Math::pow(10, (precision as u64));
+        let scaling_factor = MathU128::pow(10, (precision as u64));
         Oracle::register_oracle<OracleT, PriceOracleInfo>(sender, PriceOracleInfo{
             scaling_factor,
         });

@@ -1,4 +1,4 @@
-address Quantum {
+/* address Quantum {
 module Rebase {
     use std::signer;
     use Quantum::SafeMath;
@@ -6,8 +6,8 @@ module Rebase {
     struct ModifyCapability<phantom T> has key, store { owner: address }
 
     struct Rebase<phantom T> has key, store {
-        elastic: u128,
-        base: u128,
+        elastic: u64,
+        base: u64,
     }
 
     const REBASE_NOT_EXISTS: u64 = 102;
@@ -27,9 +27,9 @@ module Rebase {
     // Calculates the base value in relationship to `elastic` and `total`.
     public fun toBase<T: store>(
         addr: address,
-        elastic: u128,
+        elastic: u64,
         roundUp: bool,
-    ): u128 acquires Rebase {
+    ): u64 acquires Rebase {
         assert!(exists<Rebase<T>>(addr), REBASE_NOT_EXISTS);
         let total = borrow_global<Rebase<T>>(addr);
         if (total.elastic == 0) {
@@ -167,4 +167,4 @@ module Rebase {
         subByBaseWithCapability<T>(borrow_global<ModifyCapability<T>>(addr), base, roundUp)
     }
 }
-}
+} */

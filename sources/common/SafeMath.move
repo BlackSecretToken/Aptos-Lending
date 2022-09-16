@@ -1,7 +1,7 @@
 address Quantum {
 module SafeMath {
     use std::error;
-    use Quantum::Math;
+    use Quantum::MathU128;
 
     const EXP_SCALE_9: u128 = 1000000000;// e9
     const EXP_SCALE_10: u128 = 10000000000;// e10
@@ -27,7 +27,7 @@ module SafeMath {
             return x * y / z
         };
         if (x >= z || y >= z) {
-            return Math::mul_div(x, y, z)
+            return MathU128::mul_div(x, y, z)
         };
 
         if (x >= y) {
@@ -35,7 +35,7 @@ module SafeMath {
         } else {
             y = y * EXP_SCALE_10;
         };
-        let r = Math::mul_div(x, y, z);
+        let r = MathU128::mul_div(x, y, z);
         r / EXP_SCALE_10
     }
 
@@ -71,11 +71,11 @@ module SafeMath {
     /// can avoid  sqrt(x*y) overflow, and at the same time avoid loss presicion
     public fun safe_mul_sqrt(x: u128, y: u128): u128 {
         if (x <= EXP_SCALE_18 && y <= EXP_SCALE_18) {
-            (Math::sqrt(x * y) as u128)
+            (MathU128::sqrt(x * y) as u128)
         }else {
             // sqrt(x*y) == sqrt(x) * sqrt(y)
             let r = safe_mul_div(x, y ,EXP_SCALE_18);
-            (Math::sqrt(r) as u128) * EXP_SCALE_9
+            (MathU128::sqrt(r) as u128) * EXP_SCALE_9
         }
     }
 }

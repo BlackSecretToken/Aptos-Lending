@@ -1,13 +1,12 @@
-address Quantum{
-/// The module provide some improved math calculations.
-module Math {
-    use std::vector;
+// SPDX-License-Identifier: MIT
 
-    // TODO: verify the module.
-    spec module {
-        pragma verify = false;
-        pragma aborts_if_is_strict;
-    }
+// @title Math
+// @dev Standard math utilities missing in the Move language (for `u128`).
+
+address Quantum {
+
+module MathU128 {
+    use std::vector;
 
     const U64_MAX:u64 = 18446744073709551615;
     const U128_MAX:u128 = 340282366920938463463374607431768211455;

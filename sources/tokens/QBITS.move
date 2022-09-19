@@ -78,9 +78,9 @@ module QBITS {
         coin::deposit(dst_addr, coins_minted);
     }
 
-    public fun mint<QUSD>(account: &signer, to: address, amount: u64) {
+    public fun mint<QBITS>(account: &signer, to: address, amount: u64) acquires Capabilities {
         assert!(get_max_supply() >= ((option::destroy_some(coin::supply<QBITS>()) as u64) + amount), ERR_TOO_BIG_AMOUNT);
-        mint<QBITS>(account, to, amount);
+        mint_internal<QBITS>(account, to, amount);
     }
 
     public fun scaling_factor(): u64 {

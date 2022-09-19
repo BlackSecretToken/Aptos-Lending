@@ -103,7 +103,6 @@ module QUSD {
 
     public fun mint_to(account: &signer, to: address, amount: u64) acquires Minting, Capabilities {
         let minting = borrow_global_mut<Minting>(coin_address<QUSD>());
-        // let supply = coin::supply<QUSD>();
         let total_supply = supply();
         let now = timestamp::now_seconds();
         let total_minted_amount;

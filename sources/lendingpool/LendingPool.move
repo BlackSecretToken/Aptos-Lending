@@ -125,7 +125,7 @@ module LendingPool {
         pool_owner
     }
 
-    fun assert_total_collateral<PoolType: store, CollateralTokenType: store>(): address {
+    fun assert_total_collateral<PoolType: store, CollateralTokenType>(): address {
         let pool_owner = t_address<PoolType>();
         assert!(exists<TotalCollateral<PoolType, CollateralTokenType>>(pool_owner), ERR_NOT_EXIST);
         pool_owner
@@ -133,7 +133,7 @@ module LendingPool {
 
     // =================== initialize ===================
     // only PoolType issuer can initialize
-    public fun initialize<PoolType: store, CollateralTokenType: store, BorrowTokenType: store>(
+    public fun initialize<PoolType: store, CollateralTokenType, BorrowTokenType: store>(
         account: &signer,
         collaterization_rate: u64,
         liquidation_threshold: u64,
@@ -310,7 +310,7 @@ module LendingPool {
     }
 
     // return collateral deposited amount
-    public fun collateral_info<PoolType: store, CollateralTokenType: store>(): u64 acquires TotalCollateral {
+    public fun collateral_info<PoolType: store, CollateralTokenType>(): u64 acquires TotalCollateral {
         let pool_owner = assert_total_collateral<PoolType, CollateralTokenType>();
         let total_collateral = borrow_global<TotalCollateral<PoolType, CollateralTokenType>>(pool_owner);
         coin::value(&total_collateral.balance)
@@ -422,7 +422,7 @@ module LendingPool {
 
     // =================== add collateral ===================
     // Adds `collateral` to the account
-    public fun add_collateral<PoolType: store, CollateralTokenType: store>(
+    public fun add_collateral<PoolType: store, CollateralTokenType>(
         account: &signer,
         amount: u64,
     ) acquires TotalCollateral, Position, PoolInfo {
@@ -455,7 +455,7 @@ module LendingPool {
 
     // =================== remove collateral ===================
     // Removes `amount` amount of collateral and transfers it to `receiver`.
-    public fun remove_collateral<PoolType: store, CollateralTokenType: store, BorrowTokenType: store>(
+    public fun remove_collateral<PoolType: store, CollateralTokenType, BorrowTokenType: store>(
         account: &signer,
         receiver: address,
         amount: u64,
@@ -467,7 +467,7 @@ module LendingPool {
         assert_is_solvent<PoolType, BorrowTokenType>(account_addr);
     }
 
-    fun do_remove_collateral<PoolType: store, CollateralTokenType: store>(
+    fun do_remove_collateral<PoolType: store, CollateralTokenType>(
         from: address,
         to: address,
         amount: u64,
@@ -613,7 +613,7 @@ module LendingPool {
     // @param users An array of user addresses.
     // @param max_parts A one-to-one mapping to `users`, contains maximum (partial) borrow amounts (to liquidate) of the respective user.
     // @param to Address of the receiver in open liquidations.
-    public fun liquidate<PoolType: store, CollateralTokenType: store, BorrowTokenType: store>(
+    public fun liquidate<PoolType: store, CollateralTokenType, BorrowTokenType: store>(
         account: &signer,
         users: &vector<address>,
         max_parts: &vector<u64>,
@@ -728,7 +728,7 @@ module LendingPool {
     const ACTION_BORROW: u8 = 3;
     const ACTION_REPAY: u8 = 4;
     // address 0x0 = 0x00000000000000000000000000000000
-    public fun cook<PoolType: store, CollateralTokenType: store, BorrowTokenType: store>(
+    public fun cook<PoolType: store, CollateralTokenType, BorrowTokenType: store>(
         account: &signer,
         actions: &vector<u8>,
         collateral_amount: u64,
@@ -772,7 +772,7 @@ module LendingPool {
     }
 
     // =================== deprecated ===================
-    public fun deprecated<PoolType: store, CollateralTokenType: store, BorrowTokenType: store>(
+    public fun deprecated<PoolType: store, CollateralTokenType, BorrowTokenType: store>(
         account: &signer,
         to: address,
         collateral_amount: u64,
